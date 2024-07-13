@@ -1,13 +1,12 @@
-import UserIconMenu from '../../components/UserIcon';
 import style from './home.module.css'
+import Header from '../../components/Header';
 
 const Home = () =>  {
       return (
         <div className="App">
-          {true && <UserIconMenu  />}
+          <Header />
         </div>
       );
 }
-
 
 export default Home
