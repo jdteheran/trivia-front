@@ -1,23 +1,8 @@
-body {
-    height: calc(100vh - 133px) !important;
-    margin-top: 133px !important;
-}
-
 .header {
-    position: absolute;
-    width: 100%;
-    height: 133px;
-    top: 0;
-    left: 0;
-}
-
-.header .content {
-    background-color: #232d5d;
+    background-color: var(--header-bg);
     display: flex;
     justify-content: space-between;
-    padding: 0 1rem;
-    height: 133px;
-    font-family: 'Roboto', sans-serif;
+    padding: 1rem;
     align-items: center;
 }
 
@@ -26,33 +11,41 @@ body {
 }
 
 .logo {
-    height: 100px;
-    width: 100px;
+    height: 60px;
+    width: 60px;
 }
 
 .logo img {
     width: 100%;
 }
 
+.shareButton{
+    margin-right: 1rem;
+}
+
 .score {
-    color: white;
-    font-size: x-large;
+    color: var(--header-text);
+    font-size: 1.25rem;
     display: flex;
     align-items: center;
+    gap: 1rem;
 }
 
 .score a {
-    color: white;
-    margin-left: 2rem;
+    color: var(--header-text);
+}
+
+.score a:hover{
+    text-decoration: underline;
 }
 
 .dummy {
     background-color: #ffcc01;
     font-weight: bold;
-    font-size: x-large;
+    font-size: 1rem;
     padding: 10px;
     border-radius: 50%;
-    height: 35px;    
+    height: 35px;
     display: flex;
     align-items: center;
     justify-content: center;

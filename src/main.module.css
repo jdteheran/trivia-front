@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
 :root {
   /* Colors used through the whole app */
   --bg-gradient: linear-gradient(135deg, #ff3cac, #784ba0, #2b86c5);
@@ -5,10 +7,13 @@
   --dark-blue: #252d59;
   --green: #29a63c;
   --yellow: #f2b705;
+  --yellow-forms: #ffce00;
   --red: #f20505;
-  --dark-red: #810404;
+  --dark-red: #0f0808;
   --gray: #1b2833;
   --dark-gray: #0c1015;
+  --header-bg: #232d5d;
+  --header-text: white;
 
   color: white;
   font-size: 16px;
@@ -25,8 +30,4 @@
 
 body {
   background: var(--bg-gradient);
-  display: flex;
-  flex-direction: column;
-  width: 100vw;
-  height: 100vh;
 }

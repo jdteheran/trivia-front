@@ -1,42 +1,42 @@
 import style from "./header.module.css"
-import { jwtDecode } from 'jwt-decode'
 import UserIconMenu from '../UserIcon/'
+import Share from '../Share'
+import { NavLink } from "react-router-dom"
+import isAuthenticated from "../../services/auth"
 
 const Header = (props) => {
 
-    let localScore = -1
+    let shareElement = <></>
     let scoreElement = <></>
-    const rankingUrl = "#"
-    let rankingElement = <a href={rankingUrl}>Ranking</a>
+    const rankingUrl = "/score"
+    let rankingElement = <NavLink to={rankingUrl}>Ranking</NavLink>
     let userElement = <div className={style.dummy}>
-        <a href="/login">Log in</a>
+        <NavLink to="/login">Log in</NavLink>
     </div>
 
-    const local = localStorage.getItem("user")
-    if (local) {
-        try {
-            const tokenDecode = jwtDecode(local)
-            localScore = tokenDecode.user.score.score
-            scoreElement = <p>Score: {props.score || localScore} </p>
-            rankingElement = <a href={rankingUrl}>Ranking: #{props.ranking || 1}</a>
-            userElement = <UserIconMenu />
-        } catch (error) {
-            console.log(error)
-        }
+    if (isAuthenticated()) {
+        userElement = <UserIconMenu />
+
+        if (props.ranking > 0)
+            rankingElement = <NavLink to={rankingUrl}>Ranking: # {props.ranking}</NavLink>
+            
+        if (props.score)
+            scoreElement = <p>Score: {props.score} </p>
+
+        shareElement = <Share />
     }
 
     return (
         <div className={style.header}>
-            <div className={style.content}>
-                <a className={style.logo} href="/">
-                    <img src="./Logo.png" alt="Trivia Superhéroes" />
-                </a>
-                <div className={style.score}>
-                    {scoreElement}
-                    {rankingElement}
-                </div>
-                {userElement}
+            <NavLink className={style.logo} to="/">
+                <img src="./Logo.png" alt="Trivia Superhéroes" />
+            </NavLink>
+            <div className={style.score}>
+                {shareElement}
+                {scoreElement}
+                {rankingElement}
             </div>
+            {userElement}
         </div>
 
     )

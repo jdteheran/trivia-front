@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { jwtDecode } from "jwt-decode";
 import style from './editProfileForm.module.css';
 import { useNavigate } from 'react-router-dom';
+import constants from '../../utils/constants';
+import { toast } from 'react-toastify'
 
 const EditProfileForm = () => {
-    
+
     const navigate = useNavigate()
 
     const [profile, setProfile] = useState({
@@ -20,7 +22,21 @@ const EditProfileForm = () => {
     useEffect(() => {
         const token = localStorage.getItem('user');
         const token_decoded = jwtDecode(token);
-        setProfile(token_decoded.user);
+
+        const {
+            _id,
+            name,
+            nickname,
+            cel
+        } = token_decoded.user;
+        setProfile(prevState => ({
+            ...prevState,
+            _id,
+            name,
+            nickname,
+            cel
+        }));
+
     }, []);
 
     const getUserData = () => {
@@ -53,7 +69,7 @@ const EditProfileForm = () => {
             const token = localStorage.getItem('user');
             const userData = getUserData();
 
-            const update = await fetch(`http://13.58.14.235:9000/api/user/update/${profile._id}`, {
+            const update = await fetch(`${constants.apiUrl}/api/user/update/${profile._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -62,18 +78,23 @@ const EditProfileForm = () => {
                 body: JSON.stringify(userData)
             });
 
-            if (!update.ok) return alert('Error en la peticion al servidor')
+            if (!update.ok){ 
+                return toast.error('Error en la peticion al servidor')
+            }
 
             const response = await update.json()
 
-            if (!response.process) return alert('Error al editar el usuario')
+            if (!response.process){
+                return toast.error('Error al editar el usuario')
+            } 
 
-            alert('Perfil actualizado exitosamente');
+            toast.success('Perfil actualizado exitosamente')
 
             navigate('/')
 
         } catch (error) {
-            console.error('Hubo un error actualizando el perfil', error);
+            //console.error('Hubo un error actualizando el perfil', error);
+            toast.error('Hubo un error actualizando el perfil', error)
         }
     };
 

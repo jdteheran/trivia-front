@@ -1,15 +1,19 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { jwtDecode } from "jwt-decode";
 
 import { parseDifficultyToText } from "@/utils/questions";
 
 import Loader from "../ui/Loader";
 import styles from "./QuestionCard.module.css";
+import constants from "../../utils/constants";
+import isAuthenticated from "@/services/auth";
+
+import confetti from 'canvas-confetti';
 
 const NO_QUESTIONS_MESSAGE =
   "No hay preguntas para mostrar. \n\r No hay preguntas en la base de datos o ya las contestaste todas.";
 
-const QuestionCard = () => {
+const QuestionCard = (props) => {
   const [question, setQuestion] = useState({});
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -17,6 +21,11 @@ const QuestionCard = () => {
 
   const userToken = localStorage.getItem("user");
   const userInfo = userToken ? jwtDecode(userToken).user : null;
+  const userIsAthenticated = isAuthenticated();
+
+  const headers = userIsAthenticated ?
+    { "Content-Type": "application/json", Authorization: userToken } :
+    { "Content-Type": "application/json" };
 
   const getQuestion = useCallback(async () => {
     setIsLoading(true);
@@ -24,15 +33,12 @@ const QuestionCard = () => {
     setError(null);
     setResult(null);
     try {
-      const res = await fetch("http://13.58.14.235:9000/api/question/get", {
+      const res = await fetch(`${constants.apiUrl}/api/question/get`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: userToken,
-        },
+        headers: headers,
       });
       const response = await res.json();
-      console.log(response);
+
       if (response.process) {
         setQuestion(response.data);
       } else {
@@ -47,25 +53,28 @@ const QuestionCard = () => {
 
   const checkAnswer = useCallback(
     async (answer) => {
-      console.log(answer);
       try {
+        const body = userIsAthenticated ?
+          { user_id: userInfo?._id, answer: answer } :
+          { answer: answer };
+
         const res = await fetch(
-          `http://13.58.14.235:9000/api/question/result/${question._id}`,
+          `${constants.apiUrl}/api/question/result/${question._id}`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: userToken,
-            },
-            body: JSON.stringify({
-              user_id: userInfo?._id,
-              answer: answer,
-            }),
+            headers: headers,
+            body: JSON.stringify(body),
           }
         );
         const response = await res.json();
+
         if (response.process) {
           setResult(response.data.result);
+          if (props.checkAnswerCallback)
+            props.checkAnswerCallback(response.data.result ? question.difficulty : -1);
+          if(response.data.result)
+            fireConfetti();
+
         } else {
           throw new Error("Error fetching answer", response);
         }
@@ -77,10 +86,10 @@ const QuestionCard = () => {
   );
 
   useEffect(() => {
-    if (userToken) {
-      setIsLoading(true);
-      getQuestion();
-    }
+    //if (userToken) {
+    setIsLoading(true);
+    getQuestion();
+    //}
   }, [userToken, getQuestion]);
 
   const content = useMemo(() => {
@@ -125,9 +134,8 @@ const QuestionCard = () => {
         ))}
         {result !== null && (
           <p
-            className={`${styles.questionResultLabel} ${
-              result ? styles.questionCorrect : styles.questionIncorrect
-            }`}
+            className={`${styles.questionResultLabel} ${result ? styles.questionCorrect : styles.questionIncorrect
+              }`}
           >
             {`Respuesta ${result ? "" : "in"}correcta`}
           </p>
@@ -143,11 +151,27 @@ const QuestionCard = () => {
     );
   }, [checkAnswer, error, getQuestion, isLoading, question, result]);
 
-  if (!userToken) return <div>Token is missing</div>;
+  /*if (!userToken) return <div>Token is missing</div>;*/
+
+  const canvasRef = useRef(null);
+
+  const fireConfetti = () => {
+    const myConfetti = confetti.create(canvasRef.current, {
+      resize: true,
+      useWorker: true,
+    });
+
+    myConfetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.8 },
+    });
+  };
 
   return (
     <section className={styles.questionCard}>
       <article className={styles.questionCardContent}>{content}</article>
+      <canvas ref={canvasRef} className={styles.canvaConfetti} />
     </section>
   );
 };

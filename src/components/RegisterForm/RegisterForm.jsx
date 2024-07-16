@@ -2,9 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { user_regex } from "../../services/validation/auth.validation.js";
 import style from "./registerForm.module.css";
 import { Link } from "react-router-dom";
+import constants from "../../utils/constants";
+import { toast } from 'react-toastify'
+
 const RegisterForm = () => {
   const navigate = useNavigate();
-  const { textLabel, inputs, sendButton, spanText, linkText, contentSpan } =
+  const { form, textLabel, inputs, sendButton, spanText, linkText, contentSpan } =
     style;
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -20,10 +23,12 @@ const RegisterForm = () => {
     };
 
     const { error } = user_regex.validate(user);
-    if (error) return alert(error.details[0].message);
+    if (error) {
+      return toast.error(error.details[0].message);
+    }
 
     try {
-      const register = await fetch("http://13.58.14.235:9000/api/auth/register", {
+      const register = await fetch(`${constants.apiUrl}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,65 +36,70 @@ const RegisterForm = () => {
         body: JSON.stringify(user),
       });
 
-      if (!register.ok) return alert("Error en la peticion al servidor");
+      if (!register.ok) {
+        return toast.error("Error en la peticion al servidor");
+      }
 
       const response = await register.json();
 
-      if (!response.process) return alert("Error al guardar el nuevo usuario");
+      if (!response.process) {
+        return toast.error("Error al guardar el nuevo usuario");
+      }
 
-      alert("Usuario guardado con exit");
+      toast.success("Usuario guardado con exit");
 
       navigate("/login");
     } catch (Error) {
-      alert("Error en la peticion al servidor");
+      toast.error("Error en la peticion al servidor");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label className={textLabel}>
-        Nombre:
-        <input className={inputs} type="text" name="name" required />
-      </label>
-      <br />
-      <label className={textLabel}>
-        {" "}
-        Nickname:
-        <input className={inputs} type="text" name="nickname" required />
-      </label>
-      <br />
-      <label className={textLabel}>
-        {" "}
-        Cel:
-        <input className={inputs} type="text" name="cel" required />
+    <form onSubmit={handleSubmit} className={form}>
+      <div>
+        <label className={textLabel}>
+          Nombre:
+          <input className={inputs} type="text" name="name" required />
+        </label>
         <br />
-      </label>
-      <label className={textLabel}>
-        Password:
-        <input className={inputs} type="password" name="password" required />
-      </label>
-      <br />
-      <label className={textLabel}>
-        {" "}
-        Confirmar Password
-        <input
-          className={inputs}
-          type="password"
-          name="confirm_password"
-          required
-        />
-      </label>
+        <label className={textLabel}>
+          {" "}
+          Nickname:
+          <input className={inputs} type="text" name="nickname" required />
+        </label>
+        <br />
+        <label className={textLabel}>
+          {" "}
+          Cel:
+          <input className={inputs} type="text" name="cel" required />
+          <br />
+        </label>
+        <label className={textLabel}>
+          Password:
+          <input className={inputs} type="password" name="password" required />
+        </label>
+        <br />
+        <label className={textLabel}>
+          {" "}
+          Confirmar Password
+          <input
+            className={inputs}
+            type="password"
+            name="confirm_password"
+            required
+          />
+        </label>
 
-      <br />
+        <br />
 
-      <input className={sendButton} type="submit" value={"Registrarse"} />
-      <br />
+        <input className={sendButton} type="submit" value={"Registrarse"} />
+        <br />
+      </div>
       <div className={contentSpan}>
         <span className={spanText}>
-          ¿Ya tienes una cuenta?{" "}
+          ¿Ya tienes una cuenta?
           <Link className={linkText} to={"/login"}>
-            {" "}
-            Inicia sesión{" "}
+            Inicia sesión
           </Link>
         </span>
       </div>

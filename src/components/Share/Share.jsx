@@ -1,8 +1,9 @@
 import style from './Share.module.css'
 import Modal from '../Modal';
-import React from "react";
-
-const isLoggedIn = localStorage.getItem('user')
+import React, { useEffect } from "react";
+import constants from '../../utils/constants';
+import { toast } from 'react-toastify';
+import { jwtDecode } from 'jwt-decode';
 
 const Share = () => {
     const [open, setOpen] = React.useState(false);
@@ -16,62 +17,64 @@ const Share = () => {
     };
 
     const hadleSubmit = async event => {
-        const userName = localStorage.getItem('user').nickname
-        const token = localStorage.getItem('user')
-
         event.preventDefault()
 
-        const { number } = event.target
+        const token = localStorage.getItem('user')
+        if (!token) return toast.error('Regístrate para compartir')
 
+        const token_decode = jwtDecode(token)
+        const userName = token_decode.user.nickname
+
+        if (!userName) return toast.error('No se encontró nombre de usuario')
+
+        const { number } = event.target
+        const body = { "cel": number.value }
 
         try {
-            const sendSMS = await fetch('http://13.58.14.235:9000/api/send/send', {
+            const sendSMS = await fetch(`${constants.apiUrl}/api/send`, {
                 method: 'POST',
                 headers: {
                     "Content-Type": 'application/json',
                     "Authorization": token
                 },
-                body: {
-                    "nickname": userName,
-                    "cel": number
-                }
+                body: JSON.stringify(body)
+            })
 
+            if (!sendSMS.ok) {
+                return toast.error('Error en la peticion al servidor')
             }
-            )
-            if (!sendSMS.ok) return alert('Error en la peticion al servidor')
 
             const response = await sendSMS.json()
 
-            if (!response.process) return alert('Error al guardar el nuevo usuario')
+            if (!response.process) {
+                return toast.error('Error al enviar mensaje')
+            }
 
-            alert('¡Invitación enviada!')
+            toast.success('¡Invitación enviada!')
             setOpen(false);
 
         } catch (error) {
-            alert('Error en la peticion al servidor')
+            toast.error('Error en la peticion al servidor')
         }
     }
 
     return (
         <>
-            {isLoggedIn ? 
-                <button id={style.shareButton} onClick={handleOpen}>
-                    <img id={style.shareIcon} src="./share-icon.png" alt="Logo trivia" />
-                </button> 
-            : null}
-
+            <button className={style.shareButton} onClick={handleOpen}>
+                <img className={style.shareIcon} src="./share-icon.png" alt="Logo trivia" />
+            </button>
 
             <Modal isOpen={open} onClose={handleClose}>
-                <>
-                    <h1>Compartir</h1>
-                    <p>Invita a tus amigos a jugar trivia Marvel a través de SMS!</p>
-                    <form onSubmit={hadleSubmit}>
-                        <label htmlFor="number">+57</label>
-                        <input name="number" type="tel" placeholder="xxx xxxxxxx" maxLength="10" required></input>
+                <h1>Compartir</h1>
+                <p>Invita a tus amigos a jugar trivia Marvel a través de SMS!</p>
+                <form onSubmit={hadleSubmit} className={style.shareForm}>
+                    <label htmlFor="number">+57</label>
+                    <input name="number" type="tel" placeholder="xxx xxxxxxx" maxLength="10" required></input>
+                    <div className={style.shareButtons}>
                         <button type='submit'>Enviar</button>
                         <button type="button" onClick={handleClose}>Cancelar</button>
-                    </form>
-                </>
+                    </div>
+                </form>
             </Modal>
         </>
 
